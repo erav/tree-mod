@@ -11,4 +11,4 @@ For each pass modes relevant actions are available. For example:
  - replicating parts of a tree
 
 Currently being used in prouction in an 800M users big data server.
-Published to sonatype.org snapshots.
+Jar published to oss.sonatype.org snapshots.
