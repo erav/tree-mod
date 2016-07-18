@@ -6,9 +6,9 @@ Two basic pass modes are available:
 
 For each pass modes relevant actions are available. For example:
  - removal of nodes
- - retainment of nodes
+ - retainment of specified branches
  - branch finder
  - replicating parts of a tree
 
-Currently being used in prouction in an 800M users big data server.
+Currently being used in prouction in an >800M users big data server.
 Jar published to oss.sonatype.org snapshots.
