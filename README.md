@@ -13,4 +13,4 @@ For each pass modes relevant actions are available. For example:
  - branch finder
  - replicating parts of a tree
 
-Currently being used in prouction in an >800M users big data server.
+Currently being used in production on a distrubted big data server serving more than 1.3 billion users.
