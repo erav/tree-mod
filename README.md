@@ -1,11 +1,16 @@
-# tree-mod
+# tree-mod 
+
+[snapshot jar and sources](https://oss.sonatype.org/content/repositories/snapshots/com/github/erav/tree-mod/0.0.1-SNAPSHOT/)
+
 Useful actions on trees comprised of java.util.Map and java.util.List, and a JSON implementation thereof.
 Two basic pass modes are available:
- - traversal of all nodes in the tree
+ - depth-first traversal of all nodes in the tree
  - navigation of specific branches\path in the tree
 
 For each pass modes relevant actions are available. For example:
  - removal of nodes
- - retainment of nodes
+ - retainment of specified branches
  - branch finder
  - replicating parts of a tree
+
+Currently being used in production on a distrubted big data server serving more than 1.3 billion users.
