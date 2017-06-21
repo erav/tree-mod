@@ -82,55 +82,58 @@ public class TreeNavigator<M extends Map<String, Object>, L extends List<Object>
 		action.end();
 	}
 
-	public void nav(TreePath jp, M map)
+	public void nav(TreePath tp, M map)
 	{
-		if (map == null || !action.recurInto(jp, map))
+		if (map == null || !action.recurInto(tp, map))
 		{
 			//source is null - navigation impossible
 			return;
 		}
 
-		if (jp.hasNext())
+		if (tp.hasNext())
 		{
-			String key = jp.next();
+			String key = tp.next();
 			if (!map.containsKey(key))
 			{
 				// cannot find next element of path in the source -
 				// the specified path does not exist in the source
-				action.pathTailNotFound(jp, map);
+				action.pathTailNotFound(tp, map);
 			}
 			else if (map.get(key) instanceof Map)
 			{
 				//reached Map type node - handle it and recur into it
-				nav(jp, (M) map.get(key));
+				nav(tp, (M) map.get(key));
 			}
 			else if (map.get(key) instanceof List)
 			{
 				//reached List type node - handle it and recur into it
-				nav(jp, (L) map.get(key));
+				nav(tp, (L) map.get(key));
 			}
-			else if (jp.hasNext())
+			else if (tp.hasNext())
 			{
 				// reached leaf node (not a container) in source but specified path expects children -
 				// the specified path is illegal because it does not exist in the source.
-				action.foundLeafBeforePathEnd(jp, map.get(key));
+				action.foundLeafBeforePathEnd(tp, map.get(key));
 			}
-			else if (!jp.hasNext())
+			else if (!tp.hasNext())
 			{
 				//reached leaf in source and specified path is also at leaf -> handle it
-				action.handleLeaf(jp, map.get(key));
+				action.handleLeaf(tp, map.get(key));
 			}
 			else
 			{
-				throw new IllegalStateException("fatal: unreachable code reached at '" + jp.origin() + "'");
+				throw new IllegalStateException("fatal: unreachable code reached at '" + tp.curr() + "'");
 			}
 		}
-		action.recurEnd(jp, (M) map);
+		if (tp.hasPrev()) {
+			tp.prev();
+		}
+		action.recurEnd(tp, (M) map);
 	}
 
-	public void nav(TreePath jp, L list)
+	public void nav(TreePath tp, L list)
 	{
-		if (list == null || !action.recurInto(jp, (L) list))
+		if (list == null || !action.recurInto(tp, (L) list))
 		{
 			//list is null - navigation impossible
 			return;
@@ -142,21 +145,21 @@ public class TreeNavigator<M extends Map<String, Object>, L extends List<Object>
 			{
 				// clone the path so that for each object in the array,
 				// the iterator continues from the same position in the path
-				TreePath jpClone = getClone(jp);
-				nav(jpClone, (M) arrItem);
+				TreePath tpClone = getClone(tp);
+				nav(tpClone, (M) arrItem);
 			}
 			else if (arrItem instanceof List)
 			{
-				nav(jp, (L) arrItem);
+				nav(tp, (L) arrItem);
 			}
-			else if (!jp.hasNext())
+			else if (!tp.hasNext())
 			{
 				//reached leaf - handle it
-				action.handleLeaf(jp, arrIndex, arrItem);
+				action.handleLeaf(tp, arrIndex, arrItem);
 			}
 			arrIndex++;
 		}
-		action.recurEnd(jp, (L) list);
+		action.recurEnd(tp, (L) list);
 	}
 
 	private TreePath getClone(TreePath jp)

@@ -45,7 +45,7 @@ public class TreeTraverser<M extends Map<String, Object>, L extends List<Object>
 
 	private void depthFirst(String fullPath, M map)
 	{
-		if (map == null || map.entrySet() == null || !action.recurInto(fullPath, map)) {
+		if (map == null || !action.recurInto(fullPath, map)) {
 			return;
 		}
 		Iterator<Entry<String, Object>> it = map.entrySet().iterator();
@@ -76,6 +76,7 @@ public class TreeTraverser<M extends Map<String, Object>, L extends List<Object>
 				action.handleLeaf(fullPathToEntry, entry);
 			}
 		}
+		action.backToParent(fullPath, map);
 	}
 
 	private void depthFirst(String fullPath, L list)
@@ -100,6 +101,7 @@ public class TreeTraverser<M extends Map<String, Object>, L extends List<Object>
 			}
 			listIndex++;
 		}
+		action.backToParent(fullPath, list);
 	}
 
 	private String buildPath(String fullPath, String entryKey) {

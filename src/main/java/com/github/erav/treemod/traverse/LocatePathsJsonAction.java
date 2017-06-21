@@ -76,6 +76,18 @@ public class LocatePathsJsonAction implements JSONTraverseAction
 	}
 
 	@Override
+	public void backToParent(String fullPath, JSONObject map)
+	{
+
+	}
+
+	@Override
+	public void backToParent(String fullPath, JSONArray list)
+	{
+
+	}
+
+	@Override
 	public boolean removeEntry(String fullPathToEntry, Entry<String, Object> entry)
 	{
 		return false;

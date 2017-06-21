@@ -42,7 +42,7 @@ public class CopyPathsAction implements JSONNavigateAction
 			destTree = null;
 			return false;
 		}
-		destTree = new JSONObject();
+		initDestTree();
 		if (pathsToCopy == null || pathsToCopy.size() == 0) {
 			return false;
 		}
@@ -50,20 +50,24 @@ public class CopyPathsAction implements JSONNavigateAction
 	}
 
 	@Override
-	public boolean recurInto(TreePath jp, JSONObject o)
+	public boolean recurInto(TreePath tp, JSONObject o)
 	{
-		//reached JSONObject node - instantiate it and recur
-		handleNewNode(jp, new JSONObject());
+		if (!tp.root()) {
+			//reached JSONObject node - instantiate it and recur
+			handleNewNode(tp, new JSONObject());
+		}
 		return true;
 	}
 
-	private void handleNewNode(TreePath jp, Object node)
+
+	private void initDestTree() {
+		destTree = new JSONObject();
+	}
+
+	private void handleNewNode(TreePath tp, Object node)
 	{
-		if (!jp.hasPrev()) {
-			return;
-		}
 		if (destNodeStack.peek() instanceof JSONObject) {
-			((JSONObject) destNodeStack.peek()).put(jp.curr(), node);
+			((JSONObject) destNodeStack.peek()).put(tp.curr(), node);
 		}
 		else if (destNodeStack.peek() instanceof JSONArray) {
 			((JSONArray) destNodeStack.peek()).add(node);
@@ -72,40 +76,40 @@ public class CopyPathsAction implements JSONNavigateAction
 	}
 
 	@Override
-	public boolean recurInto(TreePath jp, JSONArray o)
+	public boolean recurInto(TreePath tp, JSONArray o)
 	{
 		//reached JSONArray node - instantiate it and recur
-		handleNewNode(jp, new JSONArray());
+		handleNewNode(tp, new JSONArray());
 		return true;
 	}
 
 	@Override
-	public void foundLeafBeforePathEnd(TreePath jp, Object obj) {
-		throw new IllegalArgumentException("branch is shorter than path - path not found in source: '" + jp.origin() + "'");
+	public void foundLeafBeforePathEnd(TreePath tp, Object obj) {
+		throw new IllegalArgumentException("branch is shorter than path - path not found in source: '" + tp.origin() + "'");
 	}
 
 	@Override
-	public void pathTailNotFound(TreePath jp, Object source) {
-		throw new IllegalArgumentException("cannot find next element of path - path not found in source: '" + jp.origin() + "'");
+	public void pathTailNotFound(TreePath tp, Object source) {
+		throw new IllegalArgumentException("cannot find next element of path - path not found in source: '" + tp.origin() + "'");
 	}
 
 	@Override
-	public void handleLeaf(TreePath jp, Object o) {
-		((JSONObject) destNodeStack.peek()).put(jp.curr(), o);
+	public void handleLeaf(TreePath tp, Object o) {
+		((JSONObject) destNodeStack.peek()).put(tp.curr(), o);
 	}
 
 	@Override
-	public void handleLeaf(TreePath jp, int arrIndex, Object o) {
+	public void handleLeaf(TreePath tp, int arrIndex, Object o) {
 		((JSONArray) destNodeStack.peek()).add(o);
 	}
 
 	@Override
-	public void recurEnd(TreePath jp, JSONObject jo) {
+	public void recurEnd(TreePath tp, JSONObject jo) {
 		destNodeStack.pop();
 	}
 
 	@Override
-	public void recurEnd(TreePath jp, JSONArray ja) {
+	public void recurEnd(TreePath tp, JSONArray ja) {
 		destNodeStack.pop();
 	}
 

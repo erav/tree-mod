@@ -1,23 +1,22 @@
 package com.github.erav.treemod;
 
-import com.github.erav.treemod.traverse.KeysPrintAction;
+import com.github.erav.treemod.navigate.JSONNavigator;
+import com.github.erav.treemod.navigate.PrintNavigatedPathAction;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import com.github.erav.treemod.traverse.JSONTraverser;
-import net.minidev.json.parser.ParseException;
 import org.junit.Test;
 
 /**
  * @author adoneitan@gmail.com
  * @since 30 May 2016
  */
-public class KeysPrintActionTest
+public class PrintNavigatedPathActionTest
 {
 	@Test
-	public void testTraverse() throws ParseException
+	public void testNavigate() throws Exception
 	{
-		KeysPrintAction p = new KeysPrintAction();
-		JSONTraverser t = new JSONTraverser(p);
+		PrintNavigatedPathAction p = new PrintNavigatedPathAction();
+		JSONNavigator n = new JSONNavigator(p, "k0.k01.k011", "k1.k11.k111");
 		JSONObject jo = (JSONObject) JSONValue.parseWithException(
 				"{" +
 					"\"k0\":{" +
@@ -42,6 +41,6 @@ public class KeysPrintActionTest
 					"}" +
 				"}"
 		);
-		t.traverse(jo);
+		n.nav(jo);
 	}
 }

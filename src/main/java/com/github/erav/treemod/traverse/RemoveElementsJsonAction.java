@@ -79,6 +79,18 @@ public class RemoveElementsJsonAction implements JSONTraverseAction
 	}
 
 	@Override
+	public void backToParent(String fullPath, JSONObject map)
+	{
+
+	}
+
+	@Override
+	public void backToParent(String fullPath, JSONArray list)
+	{
+
+	}
+
+	@Override
 	public void end() {
 		//nothing to do
 	}

@@ -2,9 +2,9 @@ package com.github.erav.treemod.path;
 
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * {@link TreePath} represents an n-gram formatted path
@@ -17,86 +17,61 @@ import java.util.ListIterator;
  */
 public class TreePath
 {
+	private static final String ROOT = "ROOT";
 
-	protected enum Step {NONE, NEXT, PREV}
 	protected final String path;
-	protected List<String> keys;
-	protected ListIterator<String> keysItr;
-	protected String currKey;
-	protected Step lastStep;
+	protected final List<String> pathPointers;
+	protected final PathDelimiter delim;
+	protected final String doubleDelimStr;
+	protected int curr;
 	protected StringBuilder origin;
 	protected StringBuilder remainder;
-	protected PathDelimiter delim;
 
 	public TreePath(String path, PathDelimiter delim)
 	{
 		this.delim = delim;
+		this.doubleDelimStr = delim.str() + delim.str();
 		checkPath(path);
 		this.path = path;
-		this.keys = Arrays.asList(path.split(delim.regex()));
+		this.pathPointers = Arrays.asList((ROOT + delim.str() + path).split(delim.regex()));
 		reset();
 	}
 
 	public void reset()
 	{
-		keysItr = keys.listIterator();
-		currKey = "";
-		lastStep = Step.NONE;
+		curr = 0;
 		origin = new StringBuilder("");
 		remainder = new StringBuilder(path);
 	}
 
 	public boolean hasNext() {
-		return keysItr.hasNext();
+		return curr < pathPointers.size() - 1;
 	}
 
-	public int nextIndex() {
-		return keysItr.nextIndex();
+	public boolean hasPrev() {
+		return curr > 0;
 	}
 
 	public String next()
 	{
-		currKey = keysItr.next();
-		/** when changing direction the {@link ListIterator} does not really
-		 * move backward so an extra step is performed */
-		if (!lastStep.equals(Step.PREV)) {
-			originIncrement();
-			remainderDecrement();
+		if (!hasNext()) {
+			throw new NoSuchElementException("there is no next key");
 		}
-		lastStep = Step.NEXT;
-		return currKey;
-	}
-
-	public boolean hasPrev() {
-		return keysItr.hasPrevious();
-	}
-
-	public int prevIndex() {
-		return keysItr.previousIndex();
+		originIncrement();
+		curr += 1;
+		remainderDecrement();
+		return pathPointers.get(curr);
 	}
 
 	public String prev()
 	{
-		String temp = currKey;
-		currKey = keysItr.previous();
-		/** when changing direction the {@link ListIterator} does not really
-		 * move backward so an extra step is performed */
-		if (!lastStep.equals(Step.NEXT)) {
-			remainderIncrement(temp);
-			originDecrement();
+		if (!hasPrev()) {
+			throw new NoSuchElementException("there is no previous key");
 		}
-		lastStep = Step.PREV;
-		return currKey;
-	}
-
-	private void remainderDecrement()
-	{
-		if (length() == 1)
-			remainder = new StringBuilder("");
-		else if (remainder.indexOf(delim.str()) < 0)
-			remainder = new StringBuilder("");
-		else
-			remainder.delete(0, remainder.indexOf(delim.str()) + 1);
+		remainderIncrement();
+		curr -= 1;
+		originDecrement();
+		return curr();
 	}
 
 	private void originDecrement()
@@ -114,15 +89,25 @@ public class TreePath
 		if (origin.length() != 0) {
 			origin.append(delim.chr());
 		}
-		origin.append(currKey);
+		origin.append(curr());
 	}
 
-	private void remainderIncrement(String prev)
+	private void remainderDecrement()
+	{
+		if (length() == 1)
+			remainder = new StringBuilder("");
+		else if (remainder.indexOf(delim.str()) < 0)
+			remainder = new StringBuilder("");
+		else
+			remainder.delete(0, remainder.indexOf(delim.str()) + 1);
+	}
+
+	private void remainderIncrement()
 	{
 		if (remainder.length() == 0)
-			remainder = new StringBuilder(prev);
+			remainder = new StringBuilder(pathPointers.get(curr));
 		else
-			remainder = new StringBuilder(prev).append(delim.chr()).append(remainder);
+			remainder = new StringBuilder(pathPointers.get(curr)).append(delim.chr()).append(remainder);
 	}
 
 	/**
@@ -136,7 +121,11 @@ public class TreePath
 	 * @return An n-gram path from the first key to the current key (inclusive)
 	 */
 	public String origin() {
-		return origin.toString();
+		return root() ? null : origin.toString();
+	}
+
+	public boolean root() {
+		return curr == 0;
 	}
 
 	/**
@@ -150,25 +139,26 @@ public class TreePath
 	 * @return first element in the JSONPath
 	 */
 	public String first() {
-		return keys.get(0);
+		return pathPointers.get(1);
 	}
 
 	/**
-	 * @return last element in the JSONPath
+	 * @return last element in the TreePath
 	 */
 	public String last() {
-		return keys.get(keys.size() - 1);
+		return pathPointers.get(pathPointers.size() - 1);
 	}
 
 	/**
-	 * @return current element pointed to by the path iterator
+	 * @return current element pointed to by the tree path
 	 */
-	public String curr() {
-		return currKey;
+	public String curr()
+	{
+		return root() ? "" : pathPointers.get(curr);
 	}
 
 	public int length() {
-		return keys.size();
+		return pathPointers.size();
 	}
 
 	public String subPath(int firstIndex, int lastIndex)
@@ -179,7 +169,7 @@ public class TreePath
 		StringBuilder sb = new StringBuilder(path.length());
 		for (int i = firstIndex; i <= lastIndex; i++)
 		{
-			sb.append(keys.get(i));
+			sb.append(pathPointers.get(i));
 			if (i < lastIndex) {
 				sb.append(delim.chr());
 			}
@@ -192,7 +182,7 @@ public class TreePath
 	{
 		if (path == null || path.equals(""))
 			throw new IllegalArgumentException("path cannot be null or empty");
-		if (path.startsWith(delim.str()) || path.endsWith(delim.str()) || path.contains(delim.str() + delim.str()))
+		if (path.startsWith(delim.str()) || path.endsWith(delim.str()) || path.contains(doubleDelimStr))
 			throw new IllegalArgumentException(String.format("path cannot start or end with %s or contain '%s%s'", delim.str(), delim.str(), delim.str()));
 	}
 
@@ -200,14 +190,7 @@ public class TreePath
 	public TreePath clone() throws CloneNotSupportedException
 	{
 		TreePath cloned = new TreePath(this.path, this.delim);
-		while (cloned.nextIndex() != this.nextIndex()) {
-			cloned.next();
-		}
-		if (cloned.prevIndex() != this.prevIndex()) {
-			cloned.prev();
-		}
-		cloned.lastStep = this.lastStep;
-		cloned.currKey = new String(this.currKey);
+		cloned.curr = this.curr;
 		cloned.origin = new StringBuilder(this.origin);
 		cloned.remainder = new StringBuilder(this.remainder);
 		return cloned;
@@ -224,9 +207,8 @@ public class TreePath
 				hasNext() == treePath.hasNext() &&
 				hasPrev() == treePath.hasPrev() &&
 				curr().equals(treePath.curr()) &&
-				origin().equals(treePath.origin()) &&
+				(origin() == null ? treePath.origin() == null : origin().equals(treePath.origin())) &&
 				remainder().equals(treePath.remainder()) &&
-				lastStep == treePath.lastStep &&
 				delim.equals(treePath.delim);
 
 	}
@@ -234,10 +216,8 @@ public class TreePath
 	@Override
 	public int hashCode() {
 		int result = path.hashCode();
-		result = 31 * result + keys.hashCode();
-		result = 31 * result + keysItr.hashCode();
-		result = 31 * result + currKey.hashCode();
-		result = 31 * result + lastStep.hashCode();
+		result = 31 * result + curr;
+		result = 31 * result + pathPointers.hashCode();
 		result = 31 * result + origin.hashCode();
 		result = 31 * result + remainder.hashCode();
 		result = 31 * result + delim.hashCode();

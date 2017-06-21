@@ -32,7 +32,7 @@ public class PathReplicatorTest
 		this.expected = expected;
 	}
 
-	@Parameterized.Parameters
+	@Parameterized.Parameters( name = "{index}: source {0} | paths {1} | expected {2}" )
 	public static Collection params()
 	{
 		return Arrays.asList(new Object[][]{

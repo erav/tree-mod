@@ -59,6 +59,19 @@ public interface TreeTraverseAction<M extends Map<String, Object>, L extends Lis
 	 */
 	void handleLeaf(String fullPathToContainingList, int listIndex, Object listItem);
 
+
+	/**
+	 * called when traversal of a non-leaf entry inside an {@Link M} map is finished
+	 * and just before the traversal moves back to the parent node
+	 */
+	void backToParent(String fullPath, M map);
+
+	/**
+	 * called when traversal of a non-leaf entry inside an {@Link L} list is finished
+	 * and just before the traversal moves back to the parent node
+	 */
+	void backToParent(String fullPath, L list);
+
 	/**
 	 * called after the traversal ends,
 	 * and just before the {@link #start(M)} method exits

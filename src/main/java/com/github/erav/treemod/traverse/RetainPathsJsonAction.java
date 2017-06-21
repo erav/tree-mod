@@ -92,6 +92,18 @@ public class RetainPathsJsonAction implements JSONTraverseAction
 		return result;
 	}
 
+	@Override
+	public void backToParent(String fullPath, JSONObject map)
+	{
+
+	}
+
+	@Override
+	public void backToParent(String fullPath, JSONArray list)
+	{
+
+	}
+
 	/**
 	 * if the full path to the entry is not contained in any of the paths to retain - remove it from the object
 	 *  this step does not remove entries whose full path is contained in a path to retain but are not equal to an
